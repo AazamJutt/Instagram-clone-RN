@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "coenraads.bracket-pair-colorizer",
+        "formulahendry.auto-rename-tag",
+        "wayou.vscode-todo-highlight",
+        "wix.vscode-import-cost",
+        "adpyke.codesnap"
+    ]
+}
