@@ -11,6 +11,7 @@ import React, { useState } from "react";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import Validator from "email-validator";
+import { firebase, db } from "../../../firebase";
 
 export default function SignupForm({ navigation }) {
   const loginFormSchema = Yup.object().shape({
@@ -20,12 +21,52 @@ export default function SignupForm({ navigation }) {
       .required()
       .min(8, "Your password must have at least 8 charachters"),
   });
+
+  const getRandomProfilePicture = async () => {
+    const response = await fetch("https://randomuser.me/api");
+    const data = await response.json();
+    return data.results[0].picture.large;
+  };
+
+  const onSignup = async (email, password, username) => {
+    try {
+      const authUser = await firebase
+        .auth()
+        .createUserWithEmailAndPassword(email, password);
+      console.log("🔥 firebase user created successful ✅", email, password);
+      db.collection("users")
+        .doc(authUser.user.email)
+        .set({
+          owner_uid: authUser.user.uid,
+          username: username,
+          email: authUser.user.email,
+          profile_picture: await getRandomProfilePicture(),
+        });
+    } catch (error) {
+      Alert.alert(
+        "🔥 My Lord !!!",
+        error.message + "\n\n What would you like to do next? 👀",
+        [
+          {
+            text: "OK",
+            onPress: () => console.log("OK"),
+            style: "cancel",
+          },
+          {
+            text: "Sign Up",
+            onPress: () => navigation.push("SignupScreen"),
+          },
+        ]
+      );
+    }
+  };
+
   return (
     <View style={styles.wrapper}>
       <Formik
         initialValues={{ email: "", username: "", password: "" }}
         onSubmit={(values) => {
-          console.log(values);
+          onSignup(values.email, values.password, values.username);
         }}
         validationSchema={loginFormSchema}
         validateOnMount={true}
@@ -70,9 +111,7 @@ export default function SignupForm({ navigation }) {
                 placeholderColor="#444"
                 placeholder="Username"
                 autoCapitalize="none"
-                keyboardType="email-address"
-                textContentType="emailAddress"
-                onChangeText={handleChange("email")}
+                onChangeText={handleChange("username")}
                 onBlur={handleBlur("email")}
                 value={values.username}
               />
@@ -93,7 +132,6 @@ export default function SignupForm({ navigation }) {
                 placeholderColor="#444"
                 placeholder="Password"
                 autoCapitalize="none"
-                keyboardType="email-address"
                 textContentType="password"
                 autoCorrect={false}
                 secureTextEntry={true}
@@ -140,7 +178,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#0096F5",
     alignItems: "center",
     minHeight: 42,
-    marginTop:15,
+    marginTop: 15,
     borderRadius: 4,
     justifyContent: "center",
   },

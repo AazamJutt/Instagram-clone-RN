@@ -7,14 +7,21 @@ import {
   StatusBar,
   ScrollView,
 } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import Header from "../../components/Home/Header";
 import Stories from "../../components/Home/Stories";
 import Post from "../../components/Home/Post";
 import BottomTabs from "../../components/Home/BottomTabs";
 import { POSTS } from "../../data/posts";
+import { db } from "../../firebase";
 
 export default function HomeScreen({ navigation }) {
+  useEffect(() => {
+    db.collectionGroup("posts").onSnapshot((snapshot) => {
+      console.log(snapshot.docs.map((doc) => doc.data()));
+    });
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <Header />
