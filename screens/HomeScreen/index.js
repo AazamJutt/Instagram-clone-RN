@@ -7,7 +7,7 @@ import {
   StatusBar,
   ScrollView,
 } from "react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../../components/Home/Header";
 import Stories from "../../components/Home/Stories";
 import Post from "../../components/Home/Post";
@@ -16,9 +16,10 @@ import { POSTS } from "../../data/posts";
 import { db } from "../../firebase";
 
 export default function HomeScreen({ navigation }) {
+  const [posts, setPosts] = useState([]);
   useEffect(() => {
     db.collectionGroup("posts").onSnapshot((snapshot) => {
-      console.log(snapshot.docs.map((doc) => doc.data()));
+      setPosts(snapshot.docs.map((doc) => doc.data()));
     });
   }, []);
 
@@ -27,7 +28,7 @@ export default function HomeScreen({ navigation }) {
       <Header />
       <ScrollView>
         <Stories />
-        {POSTS.map((post, index) => (
+        {posts.map((post, index) => (
           <Post key={index} post={post} />
         ))}
       </ScrollView>

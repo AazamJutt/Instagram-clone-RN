@@ -1,4 +1,4 @@
-import AuthNavigation from "./authNavigation";
+import AuthNavigation from "./AuthNavigation";
 
 export default function App() {
   return <AuthNavigation />;

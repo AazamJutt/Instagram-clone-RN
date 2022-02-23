@@ -109,18 +109,18 @@ const PostFooter = ({ post }) => (
 const Caption = ({ post }) => (
   <View>
     <Text style={{ color: "white", fontWeight: "600" }}>
-      {post.likes.toLocaleString("en")} likes
+      {post ? post.likes : 0} likes
     </Text>
     <Text style={{ color: "white" }}>
       <Text style={{ fontWeight: "600" }}>{post.user}</Text>{" "}
-      <Text>{post.caption}</Text>
+      <Text>{post ? post.caption : ""}</Text>
     </Text>
   </View>
 );
 
 const CommentSection = ({ post }) => (
   <TouchableOpacity>
-    {post.comments.length > 0 ? (
+    {post.comments && (
       <TouchableOpacity>
         <Text style={{ color: "gray", fontWeight: "500" }}>
           View all{" "}
@@ -129,16 +129,14 @@ const CommentSection = ({ post }) => (
             (post.comments.length > 1 ? "comments" : "comment")}
         </Text>
       </TouchableOpacity>
-    ) : (
-      ""
     )}
   </TouchableOpacity>
 );
 
 const Comment = ({ comment }) => (
   <Text style={{ color: "white" }}>
-    <Text style={{ fontWeight: "600" }}>{comment.user}</Text>{" "}
-    <Text>{comment.comment}</Text>
+    <Text style={{ fontWeight: "600" }}>{comment && comment.user}</Text>{" "}
+    <Text>{comment && comment.comment}</Text>
   </Text>
 );
 
@@ -152,7 +150,7 @@ export default function Post({ post }) {
         <PostFooter post={post} />
         <Caption post={post} />
         <CommentSection post={post} />
-        <Comment comment={post.comments[0]}/>
+        <Comment comment={post.comments ? post.comments[0] : null} />
       </View>
     </View>
   );

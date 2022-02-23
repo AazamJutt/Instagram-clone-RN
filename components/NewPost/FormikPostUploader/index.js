@@ -1,9 +1,10 @@
 import { StyleSheet, Text, View, Image, TextInput, Button } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as Yup from "yup";
 import { Formik } from "formik";
 import { Divider } from "react-native-elements";
 import validUrl from "valid-url";
+import { firebase, db } from "../../../firebase";
 
 const uploadPostSchema = Yup.object().shape({
   imageUrl: Yup.string().url().required("A URL is required"),
@@ -15,12 +16,52 @@ const PLACEHOLDER_IMG =
 
 export default function FormikPostUploader({ navigation }) {
   const [thumbnailUrl, setThumbnailUrl] = useState(PLACEHOLDER_IMG);
+  const [currentLoggedInUser, setCurrentLoggedInUser] = useState(null);
+
+  const getUserName = () => {
+    const user = firebase.auth().currentUser;
+    return db
+      .collection("users")
+      .where("owner_uid", "==", user.uid)
+      .limit(1)
+      .onSnapshot((snapshot) =>
+        snapshot.docs.map((doc) => {
+          setCurrentLoggedInUser({
+            username: doc.data().username,
+            profilePicture: doc.data().profile_picture,
+          });
+        })
+      );
+  };
+
+  useEffect(() => {
+    getUserName();
+  }, []);
+
+  const uploadPostToFirebase = (imageUrl, caption) => {
+    return db
+      .collection("users")
+      .doc(firebase.auth().currentUser.email)
+      .collection("posts")
+      .add({
+        imageUrl: imageUrl,
+        user: currentLoggedInUser.username,
+        profile_picture: currentLoggedInUser.profilePicture,
+        owner_uid: firebase.auth().currentUser.uid,
+        caption: caption,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        likes: 0,
+        likes_by_users: [],
+        comments: [],
+      })
+      .then(() => navigation.goBack());
+  };
+
   return (
     <Formik
       initialValues={{ caption: "", imageUrl: "" }}
       onSubmit={(values) => {
-        console.log(values);
-        navigation.goBack();
+        uploadPostToFirebase(values.imageUrl, values.caption);
       }}
       validationSchema={uploadPostSchema}
       validateOnMount={true}
@@ -43,7 +84,11 @@ export default function FormikPostUploader({ navigation }) {
           >
             <View>
               <Image
-                source={{ uri: validUrl.isUri(thumbnailUrl) ? thumbnailUrl : PLACEHOLDER_IMG }}
+                source={{
+                  uri: validUrl.isUri(thumbnailUrl)
+                    ? thumbnailUrl
+                    : PLACEHOLDER_IMG,
+                }}
                 style={{ width: 100, height: 100 }}
               />
             </View>
